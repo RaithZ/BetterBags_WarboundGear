@@ -1,0 +1,11 @@
+## Interface: 120001
+## Interface-Retail: 120001
+## Title: BetterBags - Warbound Gear
+## Notes: Adds Warbound Armor, Warbound Weapon, and Warbound Accessory categories to BetterBags for all Warbound Until Equipped gear.
+## Version: 1.0.0
+## Author:
+## X-Curse-Project-ID:
+## X-WoWI-ID:
+## Dependencies: BetterBags
+
+Core.lua
