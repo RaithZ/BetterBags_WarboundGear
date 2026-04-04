@@ -3,7 +3,7 @@
 ## Title: BetterBags - Warbound Gear
 ## Notes: Adds Warbound Armor, Warbound Weapon, and Warbound Accessory categories to BetterBags for all Warbound Until Equipped gear.
 ## Version: 1.0.0
-## Author:
+## Author: RaithZ
 ## X-Curse-Project-ID:
 ## X-WoWI-ID:
 ## Dependencies: BetterBags
