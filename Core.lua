@@ -1,6 +1,6 @@
 -- BetterBags - Warbound Gear
 -- Registers BetterBags categories for all Warbound Until Equipped gear.
--- Detected dynamically via tooltip — no item ID tables required.
+-- Uses C_Item.IsBoundToAccountUntilEquip for reliable detection — no tooltip scanning.
 -- Supercedes built-in armor-type categories for warbound items only;
 -- soulbound and other gear continues to use BetterBags' built-in categories.
 
@@ -30,26 +30,11 @@ local ACCESSORY_SLOTS = {
     INVTYPE_TRINKET = true,
 }
 
--- WoW global strings for "Warbound Until Equipped".
--- Populated after ADDON_LOADED to ensure globals are available.
-local WUE_STRINGS
-
 local function isWarboundUntilEquipped(bagid, slotid)
-    local tooltipInfo = C_TooltipInfo.GetBagItem(bagid, slotid)
-    if not tooltipInfo or not tooltipInfo.lines then return false end
-
-    -- Binding type always appears within the first several tooltip lines.
-    for i = 2, 6 do
-        local line = tooltipInfo.lines[i]
-        if line and line.leftText then
-            for _, str in ipairs(WUE_STRINGS) do
-                if line.leftText == str then
-                    return true
-                end
-            end
-        end
-    end
-    return false
+    if not C_Item.IsBoundToAccountUntilEquip then return false end
+    local itemLocation = ItemLocation:CreateFromBagAndSlot(bagid, slotid)
+    if not itemLocation:IsValid() then return false end
+    return C_Item.IsBoundToAccountUntilEquip(itemLocation)
 end
 
 local function getWarboundCategory(equipLoc, classID)
@@ -100,20 +85,6 @@ frame:SetScript("OnEvent", function(self, event, name)
 
     -- Initialize saved variables.
     BetterBags_WarboundGearDB = BetterBags_WarboundGearDB or { grouped = true }
-
-    -- Build the string list now that all globals are guaranteed loaded.
-    WUE_STRINGS = {}
-    if ITEM_ACCOUNTBOUND_UNTIL_EQUIP then
-        WUE_STRINGS[#WUE_STRINGS + 1] = ITEM_ACCOUNTBOUND_UNTIL_EQUIP
-    end
-    if ITEM_BIND_TO_ACCOUNT_UNTIL_EQUIP then
-        WUE_STRINGS[#WUE_STRINGS + 1] = ITEM_BIND_TO_ACCOUNT_UNTIL_EQUIP
-    end
-
-    if #WUE_STRINGS == 0 then
-        print("|cffff4444[BetterBags - Warbound Gear]|r: Could not find Warbound tooltip strings — addon disabled.")
-        return
-    end
 
     setupSettings()
 
