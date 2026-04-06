@@ -100,9 +100,12 @@ frame:SetScript("OnEvent", function(self, event, name)
         if not itemData.bindingInfo then return end
         if itemData.bindingInfo.binding ~= BINDING_WUE then return end
 
-        local equipLoc = itemData.itemInfo.itemEquipLoc
-        if not equipLoc or equipLoc == "" then return end
+        local classID = itemData.itemInfo.classID
+        if classID ~= 2 and classID ~= 4 then return end  -- weapons and armor only
 
-        return getWarboundCategory(equipLoc, itemData.itemInfo.classID)
+        local equipLoc = itemData.itemInfo.itemEquipLoc
+        if not equipLoc or equipLoc == "" or equipLoc == "INVTYPE_NON_EQUIP_IGNORE" then return end
+
+        return getWarboundCategory(equipLoc, classID)
     end)
 end)
