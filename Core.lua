@@ -6,6 +6,7 @@
 
 local addonName = ...
 
+local CATEGORY_SINGLE    = "Warbound Gear"
 local CATEGORY_ARMOR     = "Warbound Armor"
 local CATEGORY_WEAPON    = "Warbound Weapon"
 local CATEGORY_ACCESSORY = "Warbound Accessory"
@@ -51,11 +52,54 @@ local function isWarboundUntilEquipped(bagid, slotid)
     return false
 end
 
+local function getWarboundCategory(equipLoc, classID)
+    if BetterBags_WarboundGearDB.grouped then
+        return CATEGORY_SINGLE
+    end
+    if ACCESSORY_SLOTS[equipLoc] then return CATEGORY_ACCESSORY end
+    if ARMOR_SLOTS[equipLoc]     then return CATEGORY_ARMOR end
+    if classID == 2              then return CATEGORY_WEAPON end
+end
+
+local function setupSettings()
+    local category = Settings.RegisterVerticalLayoutCategory("BetterBags - Warbound Gear")
+
+    local function GetGrouped()
+        return BetterBags_WarboundGearDB.grouped
+    end
+    local function SetGrouped(_, value)
+        BetterBags_WarboundGearDB.grouped = value
+    end
+
+    local setting = Settings.RegisterProxySetting(
+        category,
+        "BBWG_grouped",
+        nil,
+        Settings.VarType.Boolean,
+        "Group All Warbound Gear",
+        true,
+        GetGrouped,
+        SetGrouped
+    )
+
+    Settings.CreateCheckBox(
+        category,
+        setting,
+        "Group all warbound gear under a single 'Warbound Gear' category.\n"
+        .. "Uncheck to split into Warbound Armor, Warbound Weapon, and Warbound Accessory."
+    )
+
+    Settings.RegisterAddOnCategory(category)
+end
+
 local frame = CreateFrame("Frame")
 frame:RegisterEvent("ADDON_LOADED")
 frame:SetScript("OnEvent", function(self, event, name)
     if name ~= addonName then return end
     self:UnregisterEvent("ADDON_LOADED")
+
+    -- Initialize saved variables.
+    BetterBags_WarboundGearDB = BetterBags_WarboundGearDB or { grouped = true }
 
     -- Build the string list now that all globals are guaranteed loaded.
     WUE_STRINGS = {}
@@ -70,6 +114,8 @@ frame:SetScript("OnEvent", function(self, event, name)
         print("|cffff4444[BetterBags - Warbound Gear]|r: Could not find Warbound tooltip strings — addon disabled.")
         return
     end
+
+    setupSettings()
 
     local ok, BetterBags = pcall(function()
         return LibStub("AceAddon-3.0"):GetAddon("BetterBags")
@@ -98,16 +144,6 @@ frame:SetScript("OnEvent", function(self, event, name)
         local equipLoc = itemData.itemInfo.itemEquipLoc
         if not equipLoc or equipLoc == "" then return end
 
-        if ACCESSORY_SLOTS[equipLoc] then
-            return CATEGORY_ACCESSORY
-        end
-
-        if ARMOR_SLOTS[equipLoc] then
-            return CATEGORY_ARMOR
-        end
-
-        if itemData.itemInfo.classID == 2 then  -- Weapon
-            return CATEGORY_WEAPON
-        end
+        return getWarboundCategory(equipLoc, itemData.itemInfo.classID)
     end)
 end)
